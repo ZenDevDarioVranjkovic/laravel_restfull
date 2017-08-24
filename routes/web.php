@@ -16,7 +16,7 @@ Route::get('/', function () {
 });
 
 
-Route:: gruop(['prefix' => 'api/v1'], function(){
+Route:: group(['prefix' => 'api/v1'], function(){
 
     Route::resource('meeting', 'MeetingController', [
         'except' => ['edit', 'create']
