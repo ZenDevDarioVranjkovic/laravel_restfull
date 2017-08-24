@@ -27,11 +27,11 @@ Route:: group(['prefix' => 'api/v1'], function(){
     ]);
 
     Route::post('user',[
-        'user' => 'AuthController@store'
+        'uses' => 'AuthController@store'
     ]);
 
     Route::post('user/signin',[
-        'user' => 'AuthController@signin'
+        'uses' => 'AuthController@signin'
     ]);
 
 });
