@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Meeting;
+use Carbon\Carbon;
+use App\User;
 
 class MeetingController extends Controller
 {
@@ -19,23 +22,17 @@ class MeetingController extends Controller
 
     public function index()
     {
-        $meeting = [
-            'title' => 'Title',
-            'description' => 'Description',
-            'time' => 'Time',
-            'user_id' => 'User Id',
-            'view_meeting' => [
-                'href' => 'api/v1/meeting/1',
+        $meetings = Meeting::all();
+        foreach ($meetings as $meeting) {
+            $meeting->view_meeting = [
+                'href' => 'api/v1/meeting/' . $meeting->id,
                 'method' => 'GET'
-            ]
-        ];
+            ];
+        }
 
         $response = [
             'msg' => 'List of all Meetings',
-            'meetings' => [
-                $meeting,
-                $meeting
-            ]
+            'meetings' => $meetings
         ];
         return response()->json($response, 200);
     }
@@ -60,23 +57,29 @@ class MeetingController extends Controller
         $time = $request->input('time');
         $user_id = $request->input('user_id');
 
-        $meeting = [
+        $meeting = new Meeting([
+            'time' => Carbon::createFromFormat('YmdHie', $time),
             'title' => $title,
-            'description' => $description,
-            'time' => $time,
-            'user_id' => $user_id,
-            'view_meeting' => [
-                'href' => 'api/v1/meeting/1',
+            'description' => $description
+        ]);
+        if ($meeting->save()) {
+            $meeting->users()->attach($user_id);
+            $meeting->view_meeting = [
+                'href' => 'api/v1/meeting/' . $meeting->id,
                 'method' => 'GET'
-            ]
-        ];
+            ];
 
+            $message = [
+                'msg' => 'Meeting created',
+                'meeting' => $meeting
+            ];
+            return response()->json($message, 201);
+        }
         $response = [
-            'msg' => 'Meeting created',
-            'meeting' => $meeting
+            'msg' => 'Error during creationg'
         ];
 
-        return response()->json($response, 201);
+        return response()->json($response, 404);
     }
 
     /**
@@ -87,15 +90,10 @@ class MeetingController extends Controller
      */
     public function show($id)
     {
-        $meeting = [
-            'title' => 'Title',
-            'description' => 'Description',
-            'time' => 'Time',
-            'user_id' => 'User Id',
-            'view_meetings' => [
+        $meeting = Meeting::with('users')->where('id', $id)->firstOrFail();
+        $meeting-> view_meetings = [
                 'href' => 'api/v1/meeting',
                 'method' => 'GET'
-            ]
         ];
 
         $response = [
